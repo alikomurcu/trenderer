@@ -1,0 +1,35 @@
+# Ignore log files
+*.log
+
+# Ignore build directories
+dist/
+build/
+trenderer/
+x64/
+
+# Ignore visual sudio related files
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+
+# Ignore environment variable files
+.env
+
+# Ignore OS-specific files
+.DS_Store
+Thumbs.db
+
+# Ignore IDE-specific files
+.vscode/
+.idea/
+.vs/
+
+# Ignore compiled files
+*.out
+*.o
+*.class
+
+# Ignore dependency directories
+vendor/
+dependencies/
