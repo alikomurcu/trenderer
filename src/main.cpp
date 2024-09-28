@@ -2,13 +2,19 @@
 #include "GLFW/glfw3.h"
 #include "iostream"
 #include <glm.hpp>
-#include <gtc/matrix_transform.hpp>
-#include <gtc/type_ptr.hpp>
 #include "Mesh.h"
 #include "Shader.h"
 #include "Texture.h"
+#include "Camera.h"
 
-void processInput(GLFWwindow* window);
+void processInput(GLFWwindow* window, Camera& camera, float deltaTime);
+void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
+
+float lastX = 400, lastY = 300;  // Assuming window size is 800x600
+float xOffset, yOffset;
+bool firstMouse = true;
+
+Camera camera(glm::vec3(0.0f, 0.0f, 2.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f);
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -28,7 +34,7 @@ int main() {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
+	window = glfwCreateWindow(800, 600, "Hello World", NULL, NULL);
 
 	if (!window) {
 		glfwTerminate();
@@ -37,6 +43,8 @@ int main() {
 	
 	glfwMakeContextCurrent(window);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+	glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	// GLEW initialization
 	GLenum err = glewInit();
@@ -74,13 +82,31 @@ int main() {
 	// Create mesh
 	Mesh mesh(vertices, indices, textures);
 
+
+	// camera related
+	glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+	glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
+	glm::vec3 cameraDirection = glm::normalize(cameraPos - cameraTarget);
+	glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+	glm::vec3 cameraRight = glm::normalize(glm::cross(up, cameraDirection));
+	glm::vec3 cameraUp = glm::cross(cameraDirection, cameraRight);
+
+
+
+	shader.use();
+	glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)800 / (float)600, 0.1f, 100.0f);
+	shader.setMat4("projection", projection);
+	glm::mat4 view = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
+	//view = glm::lookAt(glm::vec3(0.0f, 0.0f,2.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	view = camera.getViewMatrix();
+	shader.setMat4("view", view);
 	// render loop
 	// -----------
 	while (!glfwWindowShouldClose(window))
 	{
 		// input
 		// -----
-		processInput(window);
+		processInput(window, camera, 0.05f);
 
 		// render
 		// ------
@@ -89,6 +115,13 @@ int main() {
 
 		// render container
 		shader.use();
+		view = camera.getViewMatrix();
+		shader.setMat4("view", view);
+		
+		glm::mat4 model = glm::mat4(1.0f);
+		//model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(0.5f, 1.0f, 0.0f));
+		shader.setMat4("model", model);
+
 		mesh.draw(shader);
 		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
 		// -------------------------------------------------------------------------------
@@ -105,8 +138,38 @@ int main() {
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
-void processInput(GLFWwindow* window)
-{
+// In your main loop or callback function for handling key inputs
+void processInput(GLFWwindow* window, Camera& camera, float deltaTime) {
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		camera.processKeyboard(FORWARD, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		camera.processKeyboard(BACKWARD, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		camera.processKeyboard(LEFT, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		camera.processKeyboard(RIGHT, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
+}
+
+// Callback for handling mouse movement
+void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
+{
+	float xpos = static_cast<float>(xposIn);
+	float ypos = static_cast<float>(yposIn);
+
+	if (firstMouse)
+	{
+		lastX = xpos;
+		lastY = ypos;
+		firstMouse = false;
+	}
+
+	float xoffset = xpos - lastX;
+	float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+
+	lastX = xpos;
+	lastY = ypos;
+
+	camera.processMouseMovement(xoffset, yoffset);
 }
