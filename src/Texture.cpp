@@ -1,8 +1,12 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "Texture.h"
 
+Texture::Texture()
+{
+}
+
 Texture::Texture(std::string path, std::string type)
-    : type(type)
+    : type(type), path(path)
 {
     loadTexture(path);
 }

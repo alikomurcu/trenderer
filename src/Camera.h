@@ -17,7 +17,9 @@ enum CameraMovement {
     FORWARD,
     BACKWARD,
     LEFT,
-    RIGHT
+    RIGHT,
+    UPWARD,
+    DOWNWARD
 };
 
 class Camera

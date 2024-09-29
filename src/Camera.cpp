@@ -26,6 +26,10 @@ void Camera::processKeyboard(CameraMovement direction, float deltaTime)
         position -= right * velocity;
     if (direction == RIGHT)
         position += right * velocity;
+    if (direction == UPWARD)
+        position += up * velocity;
+    if (direction == DOWNWARD)
+        position -= up * velocity;
 }
 
 void Camera::processMouseMovement(float xOffset, float yOffset, GLboolean constrainPitch)
@@ -35,8 +39,6 @@ void Camera::processMouseMovement(float xOffset, float yOffset, GLboolean constr
 
     yaw += xOffset;
     pitch += yOffset;
-
-    std::cout << "Yaw: " << yaw << " Pitch: " << pitch << std::endl; 
 
     if (constrainPitch)
     {

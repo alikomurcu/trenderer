@@ -8,13 +8,15 @@
 class Texture
 {  
 public:
+    Texture();
     Texture(std::string path, std::string type);
     ~Texture();
     void bind();
     void unbind();
     std::string type;
-private:
+    std::string path;
     unsigned int ID;
+private:
     unsigned char* data;
     int width, height, nrChannels;
     void loadTexture(std::string path);
