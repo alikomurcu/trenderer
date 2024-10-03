@@ -35,6 +35,12 @@ To install Trenderer, follow these steps:
     ```
 
 
+## Compiling Assimp - If Needed
+Compile assimp with these flags
+``` sh
+cmake CMakeLists.txt -DASSIMP_BUILD_STATIC_LIB=ON -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Debug -DASSIMP_BUILD_ZLIB=ON
+```
+
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
