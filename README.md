@@ -29,7 +29,11 @@ To install Trenderer, follow these steps:
     mkdir build && cd build
     cmake .. # Run cmake
     cmake --build . # Build project
+    # And run project from root directory, e.g.,
+    cd ..
+    ./build/<config>/<exetutable name>
     ```
+
 
 ## License
 
