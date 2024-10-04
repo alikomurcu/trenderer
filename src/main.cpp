@@ -118,9 +118,6 @@ int main() {
 	}
 	std::cout << "\nStatus: Using GLEW" << glewGetString(GLEW_VERSION);
 
-	// Create and link shader program
-	Shader shader("shaders/generic_light_types_vertex.glsl", "shaders/generic_light_types_fragment.glsl");
-	Shader shader2("shaders/lightbox_vertex.glsl", "shaders/lightbox_fragment.glsl");
 
 	// Create vertices and indices for a cube
 	std::vector<Vertex> vertices = {
@@ -192,11 +189,14 @@ int main() {
 	Texture texture2("assets/container2_specular.png", "material.diffuse");
 	//Texture texture2("assets/awesomeface.png", "texture_diffuse");
 
-	//std::vector<Texture> textures = { texture1, texture2 };
-	std::vector<Texture> textures;
+	std::vector<Texture> textures = { texture1, texture2 };
 
 	// Create mesh
 	Mesh mesh(vertices, indices, textures);
+
+
+	// Create and link shader program
+	Shader shader("shaders/generic_light_types_vertex.glsl", "shaders/generic_light_types_fragment.glsl");
 
 	shader.use();
 	glm::mat4 projection = glm::perspective(glm::radians(fov), (float)800 / (float)600, 0.1f, 100.0f);
@@ -205,10 +205,7 @@ int main() {
 	//view = glm::lookAt(glm::vec3(0.0f, 0.0f,2.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	view = camera.getViewMatrix();
 	shader.setMat4("view", view);
-	// set diffuse map
-	shader.setInt("material.diffuse", 0);
-	// set specular map
-	shader.setInt("material.specular", 1);
+
 	
 	glCullFace(GL_BACK);
 	glEnable(GL_DEPTH_TEST);
@@ -228,6 +225,7 @@ int main() {
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		shader.use();
         /*
            Here we set all the uniforms for the 5/6 types of lights we have. We have to set them manually and index 
            the proper PointLight struct in the array to set each uniform variable. This can be done more code-friendly
@@ -283,13 +281,10 @@ int main() {
         shader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
         shader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));  
 
-		glm::vec3 specular = glm::vec3(0.5f, 0.5f, 0.5f);
 		float shininess = 32.0f;
-		shader.setVec3("material.specular", specular);
 		shader.setFloat("material.shininess", shininess);
 
 		// render container
-		shader.use();
 		view = camera.getViewMatrix();
 		shader.setMat4("view", view);
 		
@@ -297,21 +292,12 @@ int main() {
 		shader.setMat4("projection", projection);
 
 		glm::mat4 model = glm::mat4(1.0f);
-		//model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(0.5f, 1.0f, 0.0f));
-		// rotate the cube
 		model = glm::rotate(model, lastFrame, glm::vec3(0.0f, lastFrame, 0.8f));
-		//float scaleY = sin(glfwGetTime());
-		//model = glm::scale(model, glm::vec3(1.0f, 1.0f * scaleY, 1.0f));
+		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
 		shader.setMat4("model", model);
 
 
 		// bind diffuse map
-		shader.use();
-		shader.setInt("material.diffuse", 0);
-		glActiveTexture(GL_TEXTURE0);
-		texture1.bind();
-		glActiveTexture(GL_TEXTURE1);
-		texture2.bind();
 		mesh.draw(shader);
 
 		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)

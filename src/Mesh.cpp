@@ -56,16 +56,16 @@ void Mesh::draw(Shader &shader)
         glActiveTexture(GL_TEXTURE0 + i); // Active proper texture unit before binding
         std::string number;
         std::string name = textures[i].type;
-        if (name == "texture_diffuse")
+        if (name == "diffuse_map")
             number = std::to_string(diffuseNr++);
-        else if (name == "texture_specular")
+        else if (name == "specular_map")
             number = std::to_string(specularNr++);
-        else if (name == "texture_normal")
+        else if (name == "normal_map")
             number = std::to_string(normalNr++);
-        else if (name == "texture_height")
+        else if (name == "height_map")
             number = std::to_string(heightNr++);
         // Set the sampler to correct texture unit
-        shader.setInt((name + number).c_str(), i);
+        shader.setInt(("material." + name + number).c_str(), i);
         // Bind the texture
         // glBindTexture(GL_TEXTURE_2D, textures[i].ID);
         textures[i].bind(); //GL_TEXTURE_2D
