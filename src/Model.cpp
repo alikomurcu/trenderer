@@ -127,7 +127,6 @@ Mesh* Model::processMesh(aiMesh* mesh, const aiScene* scene)
      textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 
     // return a mesh object created from the extracted mesh data
-    std::cout << "Mesh loaded" << std::endl;
     return new Mesh(vertices, indices, textures);
 }
 

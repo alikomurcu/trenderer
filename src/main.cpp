@@ -2,10 +2,12 @@
 #include "GLFW/glfw3.h"
 #include "iostream"
 #include <glm.hpp>
+#include "Model.h"
 #include "Mesh.h"
 #include "Shader.h"
 #include "Texture.h"
 #include "Camera.h"
+#include "Light.h"
 
 // Global variables
 float lastX = 400, lastY = 300;  // Assuming window size is 800x600
@@ -41,6 +43,23 @@ void processInput(GLFWwindow* window, Camera& camera, float deltaTime) {
 			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 		else
 			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+	{
+		camera.processMouseMovement(-1.0f, 0.0f);
+	}
+	if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+	{
+		camera.processMouseMovement(1.0f, 0.0f);
+	}
+	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+	{
+		camera.processMouseMovement(0.0f, 1.0f);
+	}
+	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+	{
+		camera.processMouseMovement(0.0f, -1.0f);
 	}
 }
 
@@ -119,85 +138,11 @@ int main() {
 	std::cout << "\nStatus: Using GLEW" << glewGetString(GLEW_VERSION);
 
 
-	// Create vertices and indices for a cube
-	std::vector<Vertex> vertices = {
-		// Front face (z = 0.5)
-		{glm::vec3(0.5f,  0.5f, 0.5f),  glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(1.0f, 1.0f)},
-		{glm::vec3(0.5f, -0.5f, 0.5f),  glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(1.0f, 0.0f)},
-		{glm::vec3(-0.5f, -0.5f, 0.5f),  glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.0f, 0.0f)},
-		{glm::vec3(-0.5f,  0.5f, 0.5f),  glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.0f, 1.0f)},
-
-		// Back face (z = -0.5)
-		{glm::vec3(0.5f,  0.5f, -0.5f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec2(0.0f, 1.0f)},
-		{glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec2(0.0f, 0.0f)},
-		{glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec2(1.0f, 0.0f)},
-		{glm::vec3(-0.5f,  0.5f, -0.5f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec2(1.0f, 1.0f)},
-
-		// Right face (x = 0.5)
-		{glm::vec3(0.5f,  0.5f, -0.5f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(1.0f, 1.0f)},
-		{glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(1.0f, 0.0f)},
-		{glm::vec3(0.5f, -0.5f,  0.5f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 0.0f)},
-		{glm::vec3(0.5f,  0.5f,  0.5f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 1.0f)},
-
-		// Left face (x = -0.5)
-		{glm::vec3(-0.5f,  0.5f,  0.5f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(1.0f, 1.0f)},
-		{glm::vec3(-0.5f, -0.5f,  0.5f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(1.0f, 0.0f)},
-		{glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 0.0f)},
-		{glm::vec3(-0.5f,  0.5f, -0.5f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 1.0f)},
-
-		// Top face (y = 0.5)
-		{glm::vec3(0.5f,  0.5f,  0.5f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(1.0f, 0.0f)},
-		{glm::vec3(0.5f,  0.5f, -0.5f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(1.0f, 1.0f)},
-		{glm::vec3(-0.5f,  0.5f, -0.5f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 1.0f)},
-		{glm::vec3(-0.5f,  0.5f,  0.5f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 0.0f)},
-
-		// Bottom face (y = -0.5)
-		{glm::vec3(0.5f, -0.5f,  0.5f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec2(1.0f, 1.0f)},
-		{glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec2(1.0f, 0.0f)},
-		{glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec2(0.0f, 0.0f)},
-		{glm::vec3(-0.5f, -0.5f,  0.5f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec2(0.0f, 1.0f)}
-	};
-
-	// Adjusted indices based on faces
-	std::vector<unsigned int> indices = {
-		// n, n+1, n+2, n, n+2, n+3
-		// Front
-		0, 1, 2, 0, 2, 3,
-		// Back
-		4, 5, 6, 4, 6, 7,
-		// Right
-		8, 9, 10, 8, 10, 11,
-		// Left
-		12, 13, 14, 12, 14, 15,
-		// Top
-		16, 17, 18, 16, 18, 19,
-		// Bottom
-		20, 21, 22, 20, 22, 23
-	};
-
-    // positions of the point lights
-    glm::vec3 pointLightPositions[] = {
-        glm::vec3( 0.7f,  0.2f,  2.0f),
-        glm::vec3( 2.3f, -3.3f, -4.0f),
-        glm::vec3(-4.0f,  2.0f, -12.0f),
-        glm::vec3( 0.0f,  0.0f, -3.0f)
-    };
-
-	// load and create a texture 
-	// -------------------------
-	Texture texture1("assets/container2.png", "material.diffuse");
-	Texture texture2("assets/container2_specular.png", "material.diffuse");
-	//Texture texture2("assets/awesomeface.png", "texture_diffuse");
-
-	std::vector<Texture> textures = { texture1, texture2 };
-
-	// Create mesh
-	Mesh mesh(vertices, indices, textures);
-
 
 	// Create and link shader program
-	Shader shader("shaders/generic_light_types_vertex.glsl", "shaders/generic_light_types_fragment.glsl");
-
+	Shader shader("shaders/model_vertex.glsl", "shaders/model_fragment.glsl");
+	Model backpack("assets/objects/backpack/backpack.obj");
+	
 	shader.use();
 	glm::mat4 projection = glm::perspective(glm::radians(fov), (float)800 / (float)600, 0.1f, 100.0f);
 	shader.setMat4("projection", projection);
@@ -205,8 +150,32 @@ int main() {
 	//view = glm::lookAt(glm::vec3(0.0f, 0.0f,2.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	view = camera.getViewMatrix();
 	shader.setMat4("view", view);
-
 	
+	glm::mat4 model = glm::mat4(1.0f);
+	glm::vec3 modelPos = camera.position + camera.front * 10.0f;
+	model = glm::translate(model, modelPos);
+	shader.setMat4("model", model);
+	
+	// Lighting
+	DirectionalLight dirLight(glm::vec3(-0.2f, -1.0f, -0.3f), glm::vec3(0.05f), glm::vec3(0.4f), glm::vec3(0.5f));
+	dirLight.setLight(shader);
+
+	PointLight pointLight1(glm::vec3(0.7f, 0.2f, 2.0f), glm::vec3(0.05f), glm::vec3(0.8f), glm::vec3(1.0f), 1.0f, 0.09f, 0.032f);
+	pointLight1.setLight(shader, 0);
+
+	PointLight pointLight2(glm::vec3(2.3f, -3.3f, -4.0f), glm::vec3(0.05f), glm::vec3(0.8f), glm::vec3(1.0f), 1.0f, 0.09f, 0.032f);
+	pointLight2.setLight(shader, 1);
+
+	PointLight pointLight3(glm::vec3(-4.0f, 2.0f, -12.0f), glm::vec3(0.05f), glm::vec3(0.8f), glm::vec3(1.0f), 1.0f, 0.09f, 0.032f);
+	pointLight3.setLight(shader, 2);
+
+	PointLight pointLight4(glm::vec3(0.0f, 0.0f, -3.0f), glm::vec3(0.05f), glm::vec3(0.8f), glm::vec3(1.0f), 1.0f, 0.09f, 0.032f);
+	pointLight4.setLight(shader, 3);
+
+	SpotLight spotLight(camera.position, camera.front, glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(15.0f)), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(1.0f), 1.0f, 0.09f, 0.032f);
+	spotLight.setLight(shader);
+
+
 	glCullFace(GL_BACK);
 	glEnable(GL_DEPTH_TEST);
 	// render loop
@@ -221,65 +190,16 @@ int main() {
 
 		// render
 		// ------
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClearColor(0.6f, 0.7f, 0.3f, 1.0f);
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		shader.use();
-        /*
-           Here we set all the uniforms for the 5/6 types of lights we have. We have to set them manually and index 
-           the proper PointLight struct in the array to set each uniform variable. This can be done more code-friendly
-           by defining light types as classes and set their values in there, or by using a more efficient uniform approach
-           by using 'Uniform buffer objects', but that is something we'll discuss in the 'Advanced GLSL' tutorial.
-        */
-        // directional light
-        shader.setVec3("directionalLight.direction", -0.2f, -1.0f, -0.3f);
-        shader.setVec3("directionalLight.ambient", 0.05f, 0.05f, 0.05f);
-        shader.setVec3("directionalLight.diffuse", 0.4f, 0.4f, 0.4f);
-        shader.setVec3("directionalLight.specular", 0.5f, 0.5f, 0.5f);
-        // point light 1
-        shader.setVec3("pointLights[0].position", pointLightPositions[0]);
-        shader.setVec3("pointLights[0].ambient", 0.05f, 0.05f, 0.05f);
-        shader.setVec3("pointLights[0].diffuse", 0.8f, 0.8f, 0.8f);
-        shader.setVec3("pointLights[0].specular", 1.0f, 1.0f, 1.0f);
-        shader.setFloat("pointLights[0].constant", 1.0f);
-        shader.setFloat("pointLights[0].linear", 0.09f);
-        shader.setFloat("pointLights[0].quadratic", 0.032f);
-        // point light 2
-        shader.setVec3("pointLights[1].position", pointLightPositions[1]);
-        shader.setVec3("pointLights[1].ambient", 0.05f, 0.05f, 0.05f);
-        shader.setVec3("pointLights[1].diffuse", 0.8f, 0.8f, 0.8f);
-        shader.setVec3("pointLights[1].specular", 1.0f, 1.0f, 1.0f);
-        shader.setFloat("pointLights[1].constant", 1.0f);
-        shader.setFloat("pointLights[1].linear", 0.09f);
-        shader.setFloat("pointLights[1].quadratic", 0.032f);
-        // point light 3
-        shader.setVec3("pointLights[2].position", pointLightPositions[2]);
-        shader.setVec3("pointLights[2].ambient", 0.05f, 0.05f, 0.05f);
-        shader.setVec3("pointLights[2].diffuse", 0.8f, 0.8f, 0.8f);
-        shader.setVec3("pointLights[2].specular", 1.0f, 1.0f, 1.0f);
-        shader.setFloat("pointLights[2].constant", 1.0f);
-        shader.setFloat("pointLights[2].linear", 0.09f);
-        shader.setFloat("pointLights[2].quadratic", 0.032f);
-        // point light 4
-        shader.setVec3("pointLights[3].position", pointLightPositions[3]);
-        shader.setVec3("pointLights[3].ambient", 0.05f, 0.05f, 0.05f);
-        shader.setVec3("pointLights[3].diffuse", 0.8f, 0.8f, 0.8f);
-        shader.setVec3("pointLights[3].specular", 1.0f, 1.0f, 1.0f);
-        shader.setFloat("pointLights[3].constant", 1.0f);
-        shader.setFloat("pointLights[3].linear", 0.09f);
-        shader.setFloat("pointLights[3].quadratic", 0.032f);
-        // spotLight
-        shader.setVec3("spotLight.position", camera.position);
-        shader.setVec3("spotLight.direction", camera.front);
-        shader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
-        shader.setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
-        shader.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
-        shader.setFloat("spotLight.constant", 1.0f);
-        shader.setFloat("spotLight.linear", 0.09f);
-        shader.setFloat("spotLight.quadratic", 0.032f);
-        shader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
-        shader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));  
+		
+		// update spotLight
+		spotLight.position = camera.position;
+		spotLight.direction = camera.front;
+		spotLight.setLight(shader);
 
 		float shininess = 32.0f;
 		shader.setFloat("material.shininess", shininess);
@@ -290,15 +210,8 @@ int main() {
 		
 		glm::mat4 projection = glm::perspective(glm::radians(fov), (float)800 / (float)600, 0.1f, 100.0f);
 		shader.setMat4("projection", projection);
-
-		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::rotate(model, lastFrame, glm::vec3(0.0f, lastFrame, 0.8f));
-		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
-		shader.setMat4("model", model);
-
-
-		// bind diffuse map
-		mesh.draw(shader);
+		
+		backpack.draw(shader);
 
 		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
 		// -------------------------------------------------------------------------------
