@@ -15,6 +15,28 @@ Mesh::~Mesh()
     glDeleteBuffers(1, &EBO);
 }
 
+bool Mesh::operator==(const Mesh& other) const
+{
+    for (int i = 0; i < vertices.size(); i++)
+	{
+        float epsilon = 0.0001f;
+        float distance = glm::distance(vertices[i].position, other.vertices[i].position);
+        std::cout << distance << std::endl;
+		if (distance > epsilon) // means not equal
+			return false;
+		if (vertices[i].normal != other.vertices[i].normal)
+			return false;
+		if (vertices[i].texCoord != other.vertices[i].texCoord)
+			return false;
+	}
+	for (int i = 0; i < indices.size(); i++)
+	{
+		if (indices[i] != other.indices[i])
+			return false;
+	}
+	return true;
+}
+
 void Mesh::setupMesh()
 {
     // Generate VAO, VBO, EBO
@@ -38,7 +60,7 @@ void Mesh::setupMesh()
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
     // Vertex texture coordinates
     glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoords));
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoord));
     // Unbind VAO
     glBindVertexArray(0);
 }
@@ -72,7 +94,7 @@ void Mesh::draw(Shader &shader)
     }
     // Draw mesh
     glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 
     // Always good practice to set everything back to defaults once configured.

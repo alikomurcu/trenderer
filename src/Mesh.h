@@ -11,7 +11,7 @@ struct Vertex
 {
     glm::vec3 position;
     glm::vec3 normal;
-    glm::vec2 texCoords;
+    glm::vec2 texCoord;
 };
 
 class Mesh
@@ -20,6 +20,7 @@ public:
     Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures);
     ~Mesh();
     void draw(Shader &shader);
+    bool operator==(const Mesh& other) const;
 private:
     unsigned int VAO, VBO, EBO;
     std::vector<Vertex> vertices;
