@@ -8,7 +8,7 @@
 // Default camera values
 const float YAW = -90.0f;
 const float PITCH = 0.0f;
-const float SPEED = 2.5f;
+const float SPEED = 300.0f;
 const float SENSITIVITY = 0.1f;
 const float ZOOM = 45.0f;
 
@@ -25,7 +25,7 @@ enum CameraMovement {
 class Camera
 {
 public:
-    Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch);
+    Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch, int width, int height);
     ~Camera();
 
     glm::vec3 position;
@@ -34,6 +34,7 @@ public:
     glm::vec3 right;
     glm::vec3 worldUp;
 
+    int width, height;
     float yaw;
     float pitch;
 

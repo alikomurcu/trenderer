@@ -32,7 +32,7 @@ void Texture::loadTexture(std::string path)
     
     // TODO: make this cross-graphics API
     // in opengl the texture coordinates start from the bottom left corner, so we need to flip the image
-    stbi_set_flip_vertically_on_load(true);
+    // stbi_set_flip_vertically_on_load(true);
 
     data = stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
     if (data)

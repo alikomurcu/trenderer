@@ -40,6 +40,8 @@ set(SRC_FILES
     src/Shader.cpp
     src/Texture.cpp
     src/Transform.cpp
+    src/Scene.cpp
+    src/Renderer.cpp
 )
 
 # Add ImGui source files

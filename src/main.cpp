@@ -1,7 +1,13 @@
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
-#include "iostream"
 #include <glm.hpp>
+
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+
+#include "iostream"
+
 #include "Model.h"
 #include "Mesh.h"
 #include "Shader.h"
@@ -17,7 +23,7 @@ float deltaTime = 0.0f;	// Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
 float fov = 45.0f;
 
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f);
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f, 1600, 1200);
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
@@ -33,6 +39,11 @@ void processInput(GLFWwindow* window, Camera& camera, float deltaTime) {
 		camera.processKeyboard(RIGHT, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
 		camera.processKeyboard(UPWARD, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
+		camera.movementSpeed += 0.2f;
+	if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS)
+		if (camera.movementSpeed > 0.2f) camera.movementSpeed -= 0.2f;
+
 	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
 		camera.processKeyboard(DOWNWARD, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -96,12 +107,13 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 	std::cout << "fov: " << fov << std::endl;
 }
 
-
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
 	// make sure the viewport matches the new window dimensions; note that width and 
 	// height will be significantly larger than specified on retina displays.
 	glViewport(0, 0, width, height);
+	camera.width = width;
+	camera.height = height;
 }
 
 int main() {
@@ -138,43 +150,49 @@ int main() {
 	std::cout << "\nStatus: Using GLEW" << glewGetString(GLEW_VERSION);
 
 
+	// Setup Dear ImGui context
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO();
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+
+	// Setup Platform/Renderer backends
+	ImGui_ImplGlfw_InitForOpenGL(window, true);          // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
+	ImGui_ImplOpenGL3_Init();
+	std::cout << "ImGui Initialized" << std::endl;
 
 	// Create and link shader program
 	Shader shader("shaders/model_vertex.glsl", "shaders/model_fragment.glsl");
-	Model backpack("assets/objects/backpack/backpack.obj");
+	Shader lightBoxShader("shaders/lightbox_vertex.glsl", "shaders/lightbox_fragment.glsl");
+	Shader lightBoxShader2("shaders/lightbox_vertex.glsl", "shaders/lightbox_fragment.glsl");
+	Shader lightBoxShader3("shaders/lightbox_vertex.glsl", "shaders/lightbox_fragment.glsl");
+	Shader lightBoxShader4("shaders/lightbox_vertex.glsl", "shaders/lightbox_fragment.glsl");
+	Shader lightBoxShader5("shaders/lightbox_vertex.glsl", "shaders/lightbox_fragment.glsl");
 	
+	Model sponza("assets/objects/sponza/sponza.obj");
+	Model lightBoxModel("assets/objects/cube/cube.obj");
+
 	shader.use();
-	glm::mat4 projection = glm::perspective(glm::radians(fov), (float)800 / (float)600, 0.1f, 100.0f);
+	glm::mat4 projection = glm::perspective(glm::radians(fov), (float)camera.width / (float)camera.height, 0.1f, 10000.0f);
 	shader.setMat4("projection", projection);
 	glm::mat4 view = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
-	//view = glm::lookAt(glm::vec3(0.0f, 0.0f,2.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	view = camera.getViewMatrix();
 	shader.setMat4("view", view);
 	
 	glm::mat4 model = glm::mat4(1.0f);
-	glm::vec3 modelPos = camera.position + camera.front * 10.0f;
-	model = glm::translate(model, modelPos);
+
 	shader.setMat4("model", model);
-	
+
 	// Lighting
-	DirectionalLight dirLight(glm::vec3(-0.2f, -1.0f, -0.3f), glm::vec3(0.05f), glm::vec3(0.4f), glm::vec3(0.5f));
+	DirectionalLight dirLight(glm::vec3(0.2f, -1.0f, -0.3f), glm::vec3(0.8f), glm::vec3(0.6f), glm::vec3(0.7f));
 	dirLight.setLight(shader);
 
-	PointLight pointLight1(glm::vec3(0.7f, 0.2f, 2.0f), glm::vec3(0.05f), glm::vec3(0.8f), glm::vec3(1.0f), 1.0f, 0.09f, 0.032f);
+	PointLight pointLight1(glm::vec3(160.0f, 10.0f, 0.0f), glm::vec3(0.8f), glm::vec3(0.8f), glm::vec3(1.0f), 1.0f, 0.09f, 0.032f);
 	pointLight1.setLight(shader, 0);
-
-	PointLight pointLight2(glm::vec3(2.3f, -3.3f, -4.0f), glm::vec3(0.05f), glm::vec3(0.8f), glm::vec3(1.0f), 1.0f, 0.09f, 0.032f);
-	pointLight2.setLight(shader, 1);
-
-	PointLight pointLight3(glm::vec3(-4.0f, 2.0f, -12.0f), glm::vec3(0.05f), glm::vec3(0.8f), glm::vec3(1.0f), 1.0f, 0.09f, 0.032f);
-	pointLight3.setLight(shader, 2);
-
-	PointLight pointLight4(glm::vec3(0.0f, 0.0f, -3.0f), glm::vec3(0.05f), glm::vec3(0.8f), glm::vec3(1.0f), 1.0f, 0.09f, 0.032f);
-	pointLight4.setLight(shader, 3);
 
 	SpotLight spotLight(camera.position, camera.front, glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(15.0f)), glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(1.0f), 1.0f, 0.09f, 0.032f);
 	spotLight.setLight(shader);
-
 
 	glCullFace(GL_BACK);
 	glEnable(GL_DEPTH_TEST);
@@ -182,6 +200,12 @@ int main() {
 	// -----------
 	while (!glfwWindowShouldClose(window))
 	{
+		// Start the Dear ImGui frame
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+		ImGui::ShowDemoWindow(); // Show demo window! :)
+
 		deltaTime = glfwGetTime() - lastFrame;
 		lastFrame = glfwGetTime();
 		// input
@@ -190,7 +214,7 @@ int main() {
 
 		// render
 		// ------
-        glClearColor(0.6f, 0.7f, 0.3f, 1.0f);
+        glClearColor(0.2f, 0.31f, 0.36f, 1.0f);
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -208,10 +232,14 @@ int main() {
 		view = camera.getViewMatrix();
 		shader.setMat4("view", view);
 		
-		glm::mat4 projection = glm::perspective(glm::radians(fov), (float)800 / (float)600, 0.1f, 100.0f);
+		glm::mat4 projection = glm::perspective(glm::radians(fov), (float)camera.width / (float)camera.height, 0.1f, 10000.0f);
 		shader.setMat4("projection", projection);
-		
-		backpack.draw(shader);
+
+		sponza.draw(shader);
+
+		// Render ImGui
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
 		// -------------------------------------------------------------------------------
@@ -222,6 +250,11 @@ int main() {
 	// glfw: terminate, clearing all previously allocated GLFW resources.
 	// ------------------------------------------------------------------
 	glfwTerminate();
+
+	// Shutdown Dear ImGui
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
 	return 0;
 
 }

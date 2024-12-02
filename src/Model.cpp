@@ -26,6 +26,17 @@ void Model::draw(Shader& shader){
         meshes[i]->draw(shader);
 }
 
+void Model::draw(){
+    if (shader == nullptr)
+    {
+        std::cout << "Shader is not set for model." << std::endl;
+        return;
+    }
+
+    for(unsigned int i = 0; i < meshes.size(); i++)
+        meshes[i]->draw(*shader);
+}
+
 // processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this process on its children nodes (if any).
 void Model::processNode(aiNode* node, const aiScene* scene)
 {
@@ -80,16 +91,16 @@ Mesh* Model::processMesh(aiMesh* mesh, const aiScene* scene)
             vec.y = mesh->mTextureCoords[0][i].y;
             vertex.texCoord = vec;
 
-            //// tangent
-            //vector.x = mesh->mTangents[i].x;
-            //vector.y = mesh->mTangents[i].y;
-            //vector.z = mesh->mTangents[i].z;
-            //vertex.tangent = vector;
-            //// bitangent
-            //vector.x = mesh->mBitangents[i].x;
-            //vector.y = mesh->mBitangents[i].y;
-            //vector.z = mesh->mBitangents[i].z;
-            //vertex.bitangent = vector;
+            // tangent
+            vector.x = mesh->mTangents[i].x;
+            vector.y = mesh->mTangents[i].y;
+            vector.z = mesh->mTangents[i].z;
+            vertex.tangent = vector;
+            // bitangent
+            vector.x = mesh->mBitangents[i].x;
+            vector.y = mesh->mBitangents[i].y;
+            vector.z = mesh->mBitangents[i].z;
+            vertex.bitangent = vector;
         }
         else
             vertex.texCoord = glm::vec2(0.0f, 0.0f);
